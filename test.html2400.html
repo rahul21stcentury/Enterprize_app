@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>A Message For You</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* svh ensures it fits mobile screens perfectly even with browser bars */
+            min-height: 100svh; 
+            position: relative;
+        }
+        #heartCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .card-container {
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            padding: 24px;
+            position: relative;
+            z-index: 10;
+        }
+        .greetings-text {
+            font-family: 'Caveat', cursive;
+            font-size: clamp(2.8rem, 10vw, 5rem);
+            color: #111111;
+            line-height: 1.1;
+            margin-bottom: 30px;
+            user-select: none;
+        }
+        .greetings-text span {
+            display: block;
+        }
+        .greetings-text .sub-line {
+            font-size: clamp(2.2rem, 8.5vw, 4rem);
+            margin-top: -5px;
+        }
+        .interactive-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            min-height: 160px;
+            width: 100%;
+        }
+        .action-button {
+            background-color: #e6125b;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(230, 18, 91, 0.25);
+            animation: pulse 2s infinite;
+            width: 100%;
+            max-width: 320px;
+        }
+        .action-button:active {
+            transform: scale(0.98);
+            background-color: #c20f4d;
+        }
+        .input-wrapper {
+            width: 100%;
+            max-width: 320px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: none;
+        }
+        .input-wrapper.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .text-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            background-color: #fcfcfc;
+            outline: none;
+            transition: border-color 0.3s ease;
+            text-align: center;
+            border-radius: 8px;
+            /* Prevents iOS from zooming in automatically on focus */
+            font-size: 16px; 
+        }
+        .text-input:focus {
+            border-color: #e6125b;
+            background-color: #ffffff;
+        }
+        .love-letter-message {
+            font-size: clamp(1.2rem, 5vw, 1.6rem);
+            color: #222222;
+            line-height: 1.6;
+            font-weight: 400;
+            width: 100%;
+            max-width: 450px;
+            margin-top: 10px;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: none;
+        }
+        .love-letter-message.reveal {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 4px 15px rgba(230, 18, 91, 0.25); }
+            50% { transform: scale(1.03); box-shadow: 0 4px 20px rgba(230, 18, 91, 0.4); }
+            100% { transform: scale(1); box-shadow: 0 4px 15px rgba(230, 18, 91, 0.25); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="heartCanvas"></canvas>
+
+    <div class="card-container">
+        <h1 class="greetings-text">
+            <span>Greetings</span>
+            <span class="sub-line">from your fiance</span>
+        </h1>
+
+        <div class="interactive-area">
+            <button id="actionBtn" class="action-button">click to open</button>
+
+            <div id="inputWrapper" class="input-wrapper">
+                <input 
+                    type="text" 
+                    id="loveInput" 
+                    class="text-input" 
+                    placeholder="Type here..." 
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                >
+            </div>
+
+            <p id="secretMessage" class="love-letter-message">
+                I know we are very far away , but you are always close to me in my heart. Take care my girl!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const actionBtn = document.getElementById('actionBtn');
+        const inputWrapper = document.getElementById('inputWrapper');
+        const loveInput = document.getElementById('loveInput');
+        const secretMessage = document.getElementById('secretMessage');
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let isFirstClickDone = false;
+        let heartsArray = [];
+        let animationActive = false;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Heart {
+            constructor(isExplosion = false) {
+                this.x = Math.random() * canvas.width;
+                this.y = isExplosion ? canvas.height * 0.55 + (Math.random() * 40 - 20) : canvas.height + Math.random() * 20;
+                this.size = Math.random() * 12 + 8;
+                this.speedX = isExplosion ? (Math.random() * 4 - 2) : (Math.random() * 1 - 0.5);
+                this.speedY = isExplosion ? (Math.random() * -4 - 2) : (Math.random() * -1.5 - 0.5);
+                this.opacity = Math.random() * 0.5 + 0.4;
+                const hues = [340, 350, 0, 10];
+                this.hue = hues[Math.floor(Math.random() * hues.length)];
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = `hsl(${this.hue}, 85%, 65%)`;
+                ctx.beginPath();
+                const topCurveHeight = this.size * 0.3;
+                ctx.moveTo(this.x, this.y + topCurveHeight);
+                ctx.bezierCurveTo(this.x, this.y, this.x - this.size / 2, this.y, this.x - this.size / 2, this.y + topCurveHeight);
+                ctx.bezierCurveTo(this.x - this.size / 2, this.y + (this.size + topCurveHeight) / 2, this.x, this.y + (this.size + topCurveHeight) / 2, this.x, this.y + this.size);
+                ctx.bezierCurveTo(this.x, this.y + (this.size + topCurveHeight) / 2, this.x + this.size / 2, this.y + (this.size + topCurveHeight) / 2, this.x + this.size / 2, this.y + topCurveHeight);
+                ctx.bezierCurveTo(this.x + this.size / 2, this.y, this.x, this.y, this.x, this.y + topCurveHeight);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.opacity > 0.005) this.opacity -= 0.004;
+            }
+        }
+
+        function handleHearts() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (Math.random() < 0.04 && heartsArray.length < 80) {
+                heartsArray.push(new Heart(false));
+            }
+            for (let i = 0; i < heartsArray.length; i++) {
+                heartsArray[i].update();
+                heartsArray[i].draw();
+                if (heartsArray[i].opacity <= 0 || heartsArray[i].y < -20) {
+                    heartsArray.splice(i, 1);
+                    i--;
+                }
+            }
+            if (animationActive || heartsArray.length > 0) {
+                requestAnimationFrame(handleHearts);
+            }
+        }
+
+        function triggerHeartExplosion() {
+            animationActive = true;
+            for (let i = 0; i < 40; i++) {
+                const h = new Heart(true);
+                h.x = (canvas.width / 2) + (Math.random() * 100 - 50);
+                heartsArray.push(h);
+            }
+            handleHearts();
+        }
+
+        function processClick(e) {
+            if (e) e.preventDefault();
+
+            if (!isFirstClickDone) {
+                inputWrapper.classList.add('show');
+                actionBtn.textContent = 'Type: "i love you" below';
+                actionBtn.style.animation = 'none';
+                
+                // Native mobile focus trigger
+                loveInput.focus();
+                
+                isFirstClickDone = true;
+                return;
+            }
+
+            if (isFirstClickDone) {
+                const cleanInput = loveInput.value.trim().toLowerCase();
+                if (cleanInput === "i love you") {
+                    actionBtn.style.display = 'none';
+                    inputWrapper.style.display = 'none';
+                    triggerHeartExplosion();
+                    secretMessage.classList.add('reveal');
+                } else {
+                    inputWrapper.style.animation = 'none';
+                    setTimeout(() => inputWrapper.style.animation = 'shake 0.4s ease', 10);
+                    loveInput.style.borderColor = '#ff3333';
+                    loveInput.placeholder = 'Spell exactly "i love you" ❤️';
+                    loveInput.value = '';
+                }
+            }
+        }
+
+        // Support both desktop click and fast mobile touch actions
+        actionBtn.addEventListener('click', processClick);
+
+        loveInput.addEventListener('input', () => {
+            loveInput.style.borderColor = '#e6125b';
+        });
+
+        loveInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                // Dimiss mobile keyboard natively on submit
+                loveInput.blur(); 
+                processClick();
+            }
+        });
+
+        // Start subtle passive hearts running in background immediately
+        handleHearts();
+    </script>
+</body>
+</html>
